@@ -1,0 +1,14 @@
+{
+  "name": "fontforall",
+  "description": "service to ttf->woff",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "express": "4.0.0",
+    "body-parser": "",
+    "method-override": ""
+  },
+  "devDependencies": {
+    "gulp-ttf2woff": "0.0.5"
+  }
+}
