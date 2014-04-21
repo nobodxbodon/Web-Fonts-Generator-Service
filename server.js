@@ -78,13 +78,8 @@ http.createServer(function(req, res) {
                                     'content-type': 'text/html'
                                 });
                                 //res.write('received upload:\n\n');
-                                res.end('<form action="/upload" enctype="multipart/form-data" method="post">'+
-                                    '<input type="file" name="input" multiple="multiple"><br>'+
-                                    '<input type="file" name="upload" multiple="multiple"><br>'+
-                                    '<input type="submit" value="Upload">'+
-                                    '</form>'+
-                                    '<style>@font-face { font-family: newfont; src: url("/new_current.woff"); } div{font-family:newfont;}</style>'+
-                                    '<div>'+demo+'</div>'
+                                res.end('<div>Woff file generated:</div>'+
+                                    '<a href="/download">rename after download</div>'
                                 );
                             });
                             
@@ -108,9 +103,8 @@ http.createServer(function(req, res) {
     });
     res.end(
         '<form action="/upload" enctype="multipart/form-data" method="post">'+
-        '<input type="text" name="demo"><br>'+
-        '<input type="file" name="input" multiple="multiple"><br>'+
-        '<input type="file" name="upload" multiple="multiple"><br>'+
+        '<span>content file:</span><input type="file" name="input" multiple="multiple"><br>'+
+        '<span>ttf file:</span><input type="file" name="upload" multiple="multiple"><br>'+
         '<input type="submit" value="Upload">'+
         '</form>'
         );
