@@ -9,13 +9,22 @@ https://github.com/wangxiaomo/TTFRender
 #### 依赖：
 
 ```
-Python 2.7+
-安装NodeJS
-npm install
+Python 2.7+ (2.7.3 for me)
+NodeJS (0.10.26 for me)
+```
+
+安装gulp
+```
 npm install -g gulp
+
+```
+安装fontforge. 仅在ubuntu 12.04成功，Mac无果(http://stackoverflow.com/questions/9964284/fontforge-python-bindings-with-macports?noredirect=1#comment35450979_9964284)：
+```
+$ sudo apt-get install fontforge python-fontforge
 ```
 
 #### 使用
+$ npm install
 启动NodeJS服务:
 ```
 $ node server.js
