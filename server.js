@@ -26,8 +26,18 @@ app.use(errorHandler);
 
 app.use(express.static(__dirname+'/TTFRender/fonts'));
 
-
+var MAX_UPLOAD_SIZE=1460000;
 http.createServer(function(req, res) {
+    if(req.url=='/'){
+        fs.exists('TTFRender/char.txt', function(exists){
+          res.writeHead(200, {
+            'content-type': 'text/html'
+          });
+          res.end(
+            '<span>Someone is generating. Wait for 1 minute maybe?</span>'
+          );
+        });
+    }
     if(req.url=='/download'){
         fs.readFile('TTFRender/fonts/new_current.woff', function (err,data) {
         res.writeHead(200);
@@ -41,10 +51,35 @@ http.createServer(function(req, res) {
         var form = new formidable.IncomingForm();
         form.uploadDir = "TTFRender/fonts/";
         form.keepExtensions = true;
+/*
+      form.on('error', function(message) {
+        console.log('throw error now!'+message);
+        res.writeHead(200,{'content-type':'text/html'});
+        res.end('Upload too large');
+        
+      });
+
+      form.on('progress', function(bytesReceived, bytesExpected) {
+        if (bytesReceived > MAX_UPLOAD_SIZE) {
+            this.emit('error'); 
+          res.writeHead(200,{'content-type':'text/html'});
+          res.end('Upload too large');
+	}
+      });
+    form.on('close', function(){
+        res.writeHead(413,{'content-type':'text/html'});
+        res.end('Upload too large');
+    });
+*/
         form.parse(req, function(err, fields, files) {
-            
+            if(err){
+	      console.log(err);
+	      return;
+	    }
             var demo = fields.demo;
             var file = files.upload;
+            if(file==null)
+	      return;
             var input = files.input;
             fs.rename(file.path, 'TTFRender/fonts/current.ttf', function (err) {
                 if (err) throw err;
@@ -70,17 +105,19 @@ http.createServer(function(req, res) {
                             // error handling & exit
                             }
                             console.log('done gulping');
-                            fs.readFile('TTFRender/char.txt', 'utf8', function (err,data) {
+			    //save the font for later use
+			    var time = new Date().getTime();
+                            fs.rename('TTFRender/fonts/current.ttf', 'TTFRender/fonts/'+time+'.ttf', function (err,data) {
                               if (err) {
                                 return console.log(err);
                               }
+			      fs.renameSync('TTFRender/char.txt','TTFRender/'+time+'.txt');
                               res.writeHead(200, {
-                                    'content-type': 'text/html'
-                                });
-                                //res.write('received upload:\n\n');
-                                res.end('<div>Woff file generated:</div>'+
-                                    '<a href="/download">rename after download</div>'
-                                );
+                                'content-type': 'text/html'
+                              });
+                              res.end('<div>Woff file generated:</div>'+
+                                '<a href="/download">rename after download</div>'
+                              );
                             });
                             
 	  
@@ -103,8 +140,8 @@ http.createServer(function(req, res) {
     });
     res.end(
         '<form action="/upload" enctype="multipart/form-data" method="post">'+
-        '<span>content file:</span><input type="file" name="input" multiple="multiple"><br>'+
-        '<span>ttf file:</span><input type="file" name="upload" multiple="multiple"><br>'+
+        '<span>content file (pure text file that includes all characters you want to make font for):</span><input type="file" name="input" multiple="multiple"><br>'+
+        '<span>TTF file:</span><input type="file" name="upload" multiple="multiple"><br>'+
         '<input type="submit" value="Upload">'+
         '</form>'
         );
