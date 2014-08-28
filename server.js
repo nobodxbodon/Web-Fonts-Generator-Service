@@ -29,22 +29,22 @@ app.use(express.static(__dirname+'/TTFRender/fonts'));
 var MAX_UPLOAD_SIZE=1460000;
 http.createServer(function(req, res) {
     if(req.url=='/'){
-        fs.exists('TTFRender/char.txt', function(exists){
-          res.writeHead(200, {
-            'content-type': 'text/html'
-          });
-          res.end(
-            '<span>Someone is generating. Wait for 1 minute maybe?</span>'
-          );
+      fs.exists('TTFRender/char.txt', function(exists){
+        res.writeHead(200, {
+          'content-type': 'text/html'
         });
+        res.end(
+          '<span>Someone is generating. Wait for 1 minute maybe?</span>'
+        );
+      });
     }
     if(req.url=='/download'){
-        fs.readFile('TTFRender/fonts/new_current.woff', function (err,data) {
+      fs.readFile('TTFRender/fonts/new_current.woff', function (err,data) {
         res.writeHead(200);
         res.write(data,"binary");
         res.end();
-        })
-        return;
+      })
+      return;
     }
     if (req.url == '/upload' && req.method.toLowerCase() == 'post') {
         // parse a file upload
@@ -72,66 +72,57 @@ http.createServer(function(req, res) {
     });
 */
         form.parse(req, function(err, fields, files) {
-            if(err){
-	      console.log(err);
-	      return;
-	    }
-            var demo = fields.demo;
-            var file = files.upload;
-            if(file==null)
-	      return;
-            var input = files.input;
-            fs.rename(file.path, 'TTFRender/fonts/current.ttf', function (err) {
-                if (err) throw err;
+          if(err) {
+            throw err;
+          }
+          var demo = fields.demo;
+          var file = files.upload;
+          if(file==null)
+            return;
+          var input = files.input;
+          fs.rename(file.path, 'TTFRender/fonts/current.ttf', function (err) {
+            if (err) {
+              throw err;
+            }
 	
-                //shrink ttf based on input. write the string to char.txt, read it from python run.py
-                fs.rename(input.path, 'TTFRender/char.txt', function (err) {
-                    if(err){
-                        console.log(err);
+            //shrink ttf based on input. write the string to char.txt, read it from python run.py
+            fs.rename(input.path, 'TTFRender/char.txt', function (err) {
+              if(err){
+                throw err;
+              }
+              console.log('renamed complete');
+
+              var pychild =exec('python run.py',function(error,stdout,stderr){
+                console.log(stdout);
+                if ( error ) {
+                  throw stderr;
+                }
+                //gulp after python
+                var child = exec('gulp '+jobType, function( error, stdout, stderr){
+                  if ( error ) {
+                    throw stderr;
+                  }
+                  console.log('done gulping');
+                  //save the font for later use
+                  var time = new Date().getTime();
+                  fs.rename('TTFRender/fonts/current.ttf', 'TTFRender/fonts/'+time+'.ttf', function (err,data) {
+                    if (err) {
+                      throw err;
                     }
-                    console.log('renamed complete');
-
-                    var pychild =exec('python run.py',function(error,stdout,stderr){
-                        console.log(stdout);
-                        if ( error != null ) {
-                            console.log(stderr);
-                        // error handling & exit
-                        }
-                        //gulp after python
-                        var child = exec('gulp '+jobType, function( error, stdout, stderr)
-                        {
-                            if ( error != null ) {
-                                console.log(stderr);
-                            // error handling & exit
-                            }
-                            console.log('done gulping');
-			    //save the font for later use
-			    var time = new Date().getTime();
-                            fs.rename('TTFRender/fonts/current.ttf', 'TTFRender/fonts/'+time+'.ttf', function (err,data) {
-                              if (err) {
-                                return console.log(err);
-                              }
-			      fs.renameSync('TTFRender/char.txt','TTFRender/'+time+'.txt');
-                              res.writeHead(200, {
-                                'content-type': 'text/html'
-                              });
-                              res.end('<div>Woff file generated:</div>'+
-                                '<a href="/download">rename after download</div>'
-                              );
-                            });
-                            
-	  
-                        });
+                    fs.renameSync('TTFRender/char.txt','TTFRender/'+time+'.txt');
+                    res.writeHead(200, {
+                      'content-type': 'text/html'
                     });
-	
+                    res.end('<div>Woff file generated:</div>'+
+                      '<a href="/download">rename after download</div>'
+                    );
+                  });
                 });
+              });
             });
-            
-      
-
+          });
         });
-
-        return;
+      return;
     }
 
     // show a file upload form
@@ -140,8 +131,8 @@ http.createServer(function(req, res) {
     });
     res.end(
         '<form action="/upload" enctype="multipart/form-data" method="post">'+
-        '<span>content file (pure text file that includes all characters you want to make font for):</span><input type="file" name="input" multiple="multiple"><br>'+
-        '<span>TTF file:</span><input type="file" name="upload" multiple="multiple"><br>'+
+        '<span>content file (pure text file that includes all characters you want to make font for) 包含需美化字符的纯文本文件：</span><input type="file" name="input" multiple="multiple"><br>'+
+        '<span>TTF file TTF格式字体文件：</span><input type="file" name="upload" multiple="multiple"><br>'+
         '<input type="submit" value="Upload">'+
         '</form>'
         );
